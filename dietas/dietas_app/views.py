@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import authenticate, login, logout
 from .forms import PacienteForm
+from .models import Paciente
 from django.contrib import messages
 
 def index(request):
@@ -43,7 +44,7 @@ def login(request):
             password = form.cleaned_data.get('password')
             user = authenticate(username=username, password=password)
             
-            return redirect('cadastro') 
+            return redirect('painel') 
     else:
         form = AuthenticationForm()
     return render(request, 'login.html', {'form': form})
@@ -69,4 +70,17 @@ def cadastro(request):
     return render(request, 'cadastro_paciente.html', {'form': form})
 
 
+def painel(request):
+    pacientes = Paciente.objects.all()
+    context={
+        'pacientes': pacientes
+    }
+    return render(request, 'painel.html',context)
 
+
+def paciente(request,pk):
+    form = Paciente.objects.get(id=pk)
+    context = {
+        'form': form
+    }
+    return render(request, 'paciente.html', context)
