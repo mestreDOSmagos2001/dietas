@@ -1,6 +1,9 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import authenticate, login, logout
+from .forms import PacienteForm
+from .models import Paciente
+from django.contrib import messages
 
 def index(request):
     return render(request, 'index.html')
@@ -41,7 +44,7 @@ def login(request):
             password = form.cleaned_data.get('password')
             user = authenticate(username=username, password=password)
             
-            return redirect('index') 
+            return redirect('painel') 
     else:
         form = AuthenticationForm()
     return render(request, 'login.html', {'form': form})
@@ -51,4 +54,33 @@ def logout(request):
     return redirect('login')
 
 
+def cadastro(request):
+    if request.method == 'POST':
+        form = PacienteForm(request.POST)  
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Cadastro realizado com sucesso!')
+            return redirect('cadastro')
+        else:
+            messages.error(request, 'Erro ao cadastrar!')
+    else:
+        form = PacienteForm()
+        
+    
+    return render(request, 'cadastro_paciente.html', {'form': form})
 
+
+def painel(request):
+    pacientes = Paciente.objects.all()
+    context={
+        'pacientes': pacientes
+    }
+    return render(request, 'painel.html',context)
+
+
+def paciente(request,pk):
+    form = Paciente.objects.get(id=pk)
+    context = {
+        'form': form
+    }
+    return render(request, 'paciente.html', context)
