@@ -17,8 +17,8 @@ form{
     </style>
 </head>
 <body>
-    <h1>Projeto Dietas</h1>
-    <p>Essa é a página inicial do Projeto</p>
+    <h1>Adicionar Cliente</h1>
+
     <form action="/processar_formulario" method="POST">
         {% csrf_token %}
         <label for="name">Nome:</label>
@@ -31,7 +31,7 @@ form{
         <input type="text" name="peso">
         <label for="altura">Altura:(centimetros)</label>
         <input type="text" name="altura">
-        <input class="gerar" type="submit" value="Gerar dieta">
+        <input class="adicionar" type="submit" value="Adicionar Cliente">
     </form>
     
 </body>
