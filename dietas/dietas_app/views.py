@@ -1,9 +1,13 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import authenticate, login, logout
-from .forms import PacienteForm
-from .models import Paciente
+from .forms import PacienteForm, AlimentoForm, DietasForm
+from .models import Paciente, Alimento,Medida,Dietas,Refeicao
 from django.contrib import messages
+from django.db.models import  Q
+from django.shortcuts import render
+from django.utils.dateparse import parse_date
+
 
 def index(request):
     return render(request, 'index.html')
@@ -27,12 +31,10 @@ def processar_formulario(request):
             'altura': altura,
         }
 
-        # Faça algo com os dados do formulário aqui, como salvar no banco de dados ou realizar cálculos
-
-        # Redirecione para outra página ou renderize um template de confirmação
+       
         return render(request, 'confirmacao.html', context)
 
-    a
+    
     return render(request, 'vazio.html')
 
 
@@ -78,9 +80,67 @@ def painel(request):
     return render(request, 'painel.html',context)
 
 
-def paciente(request,pk):
-    form = Paciente.objects.get(id=pk)
+
+def paciente(request, pk):
+    paciente_form = Paciente.objects.get(id=pk)
+    paciente = Paciente.objects.get(id=pk)
+    data_especifica = None  # Defina um valor padrão para data_especifica
+
+    if request.method == 'POST':
+        data_especifica = request.POST.get('data_especifica')
+        
+        # Validação da data
+        try:
+            data_especifica = parse_date(data_especifica)
+        except:
+            data_especifica = None
+
+        form = DietasForm(request.POST)
+        
+        if form.is_valid():
+            form.instance.paciente = paciente
+            form.save()
+            return redirect('paciente', pk=pk) 
+    else:
+        form = DietasForm(initial={'paciente': paciente})
+    
+    cafe_manha = Dietas.objects.filter(Q(refeicoes__refeicoes__icontains='café da manha') & Q(paciente__nome=paciente_form.nome) & Q(criado__exact=data_especifica))
+    almoco = Dietas.objects.filter(Q(refeicoes__refeicoes__icontains='almoço') & Q(paciente__nome=paciente_form.nome) & Q(criado__exact=data_especifica))
+
+    total_proteina_cafe_manha = sum(d.alimento.proteina * d.quantidade for d in cafe_manha)
+    total_proteina_cafe_manha = round(total_proteina_cafe_manha, 3) 
+
+    total_proteina_almoco = sum(d.alimento.proteina * d.quantidade for d in almoco)
+    total_proteina_almoco = round(total_proteina_almoco, 3) 
+
+    total_proteina = total_proteina_cafe_manha + total_proteina_almoco
+    
     context = {
-        'form': form
+        'paciente_form': paciente_form,
+        'cafe_manha': cafe_manha,
+        'almoco': almoco,
+        'total_proteina': total_proteina,
+        'form': form,
+        'paciente': paciente,
     }
     return render(request, 'paciente.html', context)
+
+
+
+
+def dieta(request, pk):
+    paciente = Paciente.objects.get(id=pk)
+    
+    if request.method == 'POST':
+        form = DietasForm(request.POST)
+        
+        if form.is_valid():
+            form.instance.paciente = paciente 
+            form.save()
+            return redirect('paciente', pk=pk) 
+    else:
+        form = DietasForm(initial={'paciente': paciente})  
+    return render(request, 'dieta.html', {'form': form})
+
+
+

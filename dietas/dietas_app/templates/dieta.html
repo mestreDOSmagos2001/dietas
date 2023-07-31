@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Adicionar Alimento</title>
+</head>
+<body>
+    <h1>Adicionar Tarefa</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.paciente }}
+        <br><br>
+        {{ form.refeicoes }}
+        <br><br>
+        {{ form.quantidade }}
+        {{ form.alimento }}
+        <input type="submit" value="Salvar">
+    </form>
+</body>
+</html>
