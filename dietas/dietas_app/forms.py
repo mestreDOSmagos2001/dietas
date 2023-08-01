@@ -25,4 +25,4 @@ class DietasForm(forms.ModelForm):
 class RefeicaoForm(forms.ModelForm):
     class Meta:
         model = Refeicao
-        fields = ['refeicoes']
+        fields = ['id','refeicoes']

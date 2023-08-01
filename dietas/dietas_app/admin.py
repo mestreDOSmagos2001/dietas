@@ -17,7 +17,7 @@ class DietasAdmin(admin.ModelAdmin):
     list_display = ('refeicoes','paciente','quantidade', 'alimento', 'criado')
 
 class RefeicaoAdmin(admin.ModelAdmin):
-    list_display = ('refeicoes',) 
+    list_display = ('id', 'refeicoes',) 
 
 
 

@@ -43,7 +43,7 @@ class Refeicao(Base):
 class Dietas(Base):
     refeicoes = models.ForeignKey(Refeicao, on_delete=models.CASCADE)
     paciente = models.ForeignKey(Paciente, on_delete=models.CASCADE)
-    quantidade = models.IntegerField('Quantidade', max_length=20)
+    quantidade = models.IntegerField('Quantidade')
     alimento = models.ForeignKey(Alimento, on_delete=models.CASCADE)
 
     def __str__(self) -> str:
