@@ -1,12 +1,14 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import authenticate, login, logout
+
+from .bdo import PacienteService
 from .forms import PacienteForm, AlimentoForm, DietasForm
 from .models import Paciente, Alimento,Medida,Dietas,Refeicao
 from django.contrib import messages
 from django.db.models import  Q
-from django.shortcuts import render
 from django.utils.dateparse import parse_date
+from django.urls import reverse
 
 
 def index(request):
@@ -84,48 +86,37 @@ def painel(request):
 def paciente(request, pk):
     paciente_form = Paciente.objects.get(id=pk)
     paciente = Paciente.objects.get(id=pk)
-    data_especifica = None  # Defina um valor padrão para data_especifica
+    data_especifica = None
+    data_especifica_frm = None
 
     if request.method == 'POST':
-        data_especifica = request.POST.get('data_especifica')
-        
-        # Validação da data
         try:
-            data_especifica = parse_date(data_especifica)
+            data_especifica = request.POST.get('data_especifica')
+            data_especifica_frm = parse_date(data_especifica)
         except:
-            data_especifica = None
+            pass
 
         form = DietasForm(request.POST)
-        
         if form.is_valid():
-            form.instance.paciente = paciente
             form.save()
             return redirect('paciente', pk=pk) 
     else:
         form = DietasForm(initial={'paciente': paciente})
-    
-    cafe_manha = Dietas.objects.filter(Q(refeicoes__refeicoes__icontains='café da manha') & Q(paciente__nome=paciente_form.nome) & Q(criado__exact=data_especifica))
-    almoco = Dietas.objects.filter(Q(refeicoes__refeicoes__icontains='almoço') & Q(paciente__nome=paciente_form.nome) & Q(criado__exact=data_especifica))
 
-    total_proteina_cafe_manha = sum(d.alimento.proteina * d.quantidade for d in cafe_manha)
-    total_proteina_cafe_manha = round(total_proteina_cafe_manha, 3) 
+    objPacienteService = PacienteService()
+    retDietaPaciente = objPacienteService.get_dietas_by_paciente_and_data(paciente, data_especifica_frm)
+    retSomaProteinas = objPacienteService.get_soma_proteinas(retDietaPaciente)
 
-    total_proteina_almoco = sum(d.alimento.proteina * d.quantidade for d in almoco)
-    total_proteina_almoco = round(total_proteina_almoco, 3) 
-
-    total_proteina = total_proteina_cafe_manha + total_proteina_almoco
-    
     context = {
         'paciente_form': paciente_form,
-        'cafe_manha': cafe_manha,
-        'almoco': almoco,
-        'total_proteina': total_proteina,
         'form': form,
         'paciente': paciente,
+        'data_filtro' : data_especifica
     }
+    context.update(retDietaPaciente)
+    context.update(retSomaProteinas)
+    
     return render(request, 'paciente.html', context)
-
-
 
 
 def dieta(request, pk):
